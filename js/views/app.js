@@ -3,6 +3,11 @@ var app = app || {}
 app.AppView = Backbone.View.extend({
     el: '#todoapp',
     statsTemplate: _.template( $('#stats-template').html() ),
+    events : {
+        'keypress #new-todo': 'createOnEnter',
+        'click #clear-completed' : 'clearCompleted',
+        'click #toggle-all' : 'toggleAllCompleted'
+    },
     initialize: function(){
         this.allCheckbox = this.$('#toggle-all')[0];
         this.$input = this.$('#new-todo');
@@ -19,7 +24,7 @@ app.AppView = Backbone.View.extend({
         app.Todos.fetch();
     },
     addOne: function(todo) {
-        var view = new app.TodoView({ model: todo });
+        var view = new app.TodoView({ model: todo }); // takes in a model as part of the hash
         $('#todo-list').append( view.render().el );
     },
     addAll: function(){
@@ -67,5 +72,17 @@ app.AppView = Backbone.View.extend({
         }
         app.Todos.create( this.newAttributes() );
         this.$input.val('');
+    },
+    clearCompleted: function(){
+        _.invoke(app.Todos.completed(), 'destroy');
+        return false;
+    },
+    toggleAllCompleted: function(){
+        var completed = this.allCheckbox.checked;
+        app.Todos.each(function(todo){
+            todo.save({
+                'completed' : completed
+            });
+        });
     }
 });
